@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>115年度彈性薪資加碼試算工具｜各院參考</title>
+<style>
+  :root {
+    --primary: #1F4E79;
+    --sub: #2E75B6;
+    --accent: #E8A33D;
+    --green: #4F8A3C;
+    --gray-50: #F7F9FC;
+    --gray-100: #EEF2F6;
+    --gray-200: #DCE3EC;
+    --gray-300: #B9C3CE;
+    --gray-500: #6B7785;
+    --gray-700: #3F4856;
+    --gray-900: #1A2230;
+    --warn-bg: #FFF6E5;
+    --warn-bd: #E8A33D;
+    --err-bg: #FCE8E8;
+    --err-bd: #C13B3B;
+    --moe: #2E75B6;
+    --school: #4F8A3C;
+    --college: #E8A33D;
+    --shadow: 0 1px 2px rgba(15,23,42,.04), 0 4px 16px rgba(15,23,42,.06);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", "Helvetica Neue", Arial, sans-serif;
+    background: var(--gray-50);
+    color: var(--gray-900);
+    line-height: 1.6;
+    font-size: 15px;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  header.title {
+    border-bottom: 3px solid var(--primary);
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+  }
+  header.title h1 {
+    margin: 0 0 4px;
+    font-size: 26px;
+    color: var(--primary);
+    letter-spacing: 1px;
+  }
+  header.title .sub {
+    color: var(--gray-500);
+    font-size: 14px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 880px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 20px;
+  }
+  .card h2 {
+    margin: 0 0 14px;
+    font-size: 16px;
+    color: var(--primary);
+    letter-spacing: 1px;
+    border-left: 4px solid var(--sub);
+    padding-left: 10px;
+  }
+  .card h3 {
+    margin: 18px 0 10px;
+    font-size: 14px;
+    color: var(--gray-700);
+    font-weight: 600;
+  }
+
+  label { display: block; font-size: 13px; color: var(--gray-700); margin-bottom: 6px; font-weight: 600; }
+  select, input[type="number"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--gray-200);
+    border-radius: 6px;
+    font-size: 15px;
+    background: #fff;
+    color: var(--gray-900);
+    font-family: inherit;
+    transition: border .15s, box-shadow .15s;
+  }
+  select:focus, input:focus { outline: none; border-color: var(--sub); box-shadow: 0 0 0 3px rgba(46,117,182,.15); }
+  .field { margin-bottom: 14px; }
+  .hint { font-size: 12px; color: var(--gray-500); margin-top: 4px; }
+
+  .pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    background: var(--gray-100);
+    color: var(--gray-700);
+    margin-right: 6px;
+    margin-bottom: 4px;
+  }
+  .pill.primary { background: #E2ECF7; color: var(--primary); }
+  .pill.warn { background: var(--warn-bg); color: #8C5A00; }
+
+  /* Result panel */
+  .result-headline {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+  .total {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+  .total .unit { font-size: 14px; color: var(--gray-500); margin-left: 4px; font-weight: 400; }
+
+  /* Stacked bar */
+  .bar {
+    display: flex;
+    height: 28px;
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 14px 0 8px;
+    background: var(--gray-100);
+    box-shadow: inset 0 0 0 1px var(--gray-200);
+  }
+  .bar > div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    transition: width .25s ease;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .bar .seg-moe { background: var(--moe); }
+  .bar .seg-school { background: var(--school); }
+  .bar .seg-college { background: var(--college); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--gray-700); margin-bottom: 16px; }
+  .legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
+
+  /* Breakdown table */
+  table.breakdown {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+  table.breakdown th, table.breakdown td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-100);
+    font-size: 14px;
+  }
+  table.breakdown th { color: var(--gray-500); font-weight: 600; background: var(--gray-50); }
+  table.breakdown td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+  table.breakdown td.label { color: var(--gray-700); }
+  table.breakdown tr.subtotal td { background: var(--gray-50); border-top: 1px solid var(--gray-200); }
+  table.breakdown tr.total-row td { background: #E2ECF7; color: var(--primary); font-size: 15px; font-weight: 700; }
+
+  .alert {
+    margin-top: 14px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    border-left: 4px solid var(--warn-bd);
+    background: var(--warn-bg);
+    color: #6B4500;
+  }
+  .alert.err {
+    border-left-color: var(--err-bd);
+    background: var(--err-bg);
+    color: #7A1F1F;
+  }
+  .alert.ok {
+    border-left-color: var(--green);
+    background: #EDF6E9;
+    color: #2D5A1F;
+  }
+
+  /* Reference table */
+  table.ref { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.ref th, table.ref td { padding: 8px 10px; border-bottom: 1px solid var(--gray-100); text-align: center; }
+  table.ref th { background: var(--gray-100); color: var(--gray-700); font-weight: 600; }
+  table.ref td.first { text-align: left; font-weight: 600; color: var(--gray-900); }
+
+  .info-block {
+    background: var(--gray-50);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--gray-700);
+    line-height: 1.7;
+    border-left: 3px solid var(--sub);
+  }
+  .info-block ul { margin: 6px 0; padding-left: 20px; }
+  .info-block code { background: #fff; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--gray-200); font-family: "SFMono-Regular", Menlo, Consolas, monospace; font-size: 12px; color: var(--primary); }
+
+  details { margin-top: 12px; }
+  summary { cursor: pointer; font-weight: 600; color: var(--sub); padding: 8px 0; font-size: 14px; }
+  summary:hover { color: var(--primary); }
+
+  footer.foot { margin-top: 32px; text-align: center; color: var(--gray-500); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="title">
+  <h1>115 年度彈性薪資加碼試算工具</h1>
+  <div class="sub">各院參考用 — 輸入期望年度彈薪總額，即時計算教育部補助、學校保底支付與學院自籌金額</div>
+</header>
+
+<div class="grid">
+
+  <div>
+    <div class="card">
+      <h2>試算輸入</h2>
+
+      <div class="field">
+        <label for="tier">榮銜層級</label>
+        <select id="tier"></select>
+        <div class="hint" id="tier-hint"></div>
+      </div>
+
+      <div class="field" id="scheme-field">
+        <label for="scheme">適用對象（門檻）</label>
+        <select id="scheme"></select>
+        <div class="hint">不同對象之教育部補助門檻不同（36萬 / 18萬）</div>
+      </div>
+
+      <div class="field">
+        <label for="amount">期望年度彈薪總額（萬元）</label>
+        <input id="amount" type="number" min="0" step="1" value="180">
+        <div class="hint" id="amount-hint"></div>
+      </div>
+
+      <div id="quick-pills"></div>
+    </div>
+
+    <div class="card">
+      <h2>機制概述</h2>
+      <div class="info-block">
+        年度彈薪總額由<strong>三方分攤</strong>：
+        <ul>
+          <li><strong>教育部補助：</strong>依適用門檻啟動，門檻至 120 萬段補助 80%；超過 120 萬段補助 50%。</li>
+          <li><strong>學校保底支付：</strong>固定金額，由校統籌或校＋教育部分攤。</li>
+          <li><strong>學院自籌：</strong>扣除前兩項後之差額，由所屬學院自籌經費支應。</li>
+        </ul>
+        加碼上限原則為「現行基礎之 2 倍」；超過原則上限或全校天花板將顯示提醒。
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <h2>分攤試算結果</h2>
+
+      <div class="result-headline">
+        <div>
+          <div style="font-size:13px;color:var(--gray-500);">年度彈薪總額</div>
+          <div class="total"><span id="r-total">0</span><span class="unit"> 萬元 / 年</span></div>
+        </div>
+        <div id="r-status"></div>
+      </div>
+
+      <div class="bar" id="r-bar">
+        <div class="seg-moe" id="seg-moe"></div>
+        <div class="seg-school" id="seg-school"></div>
+        <div class="seg-college" id="seg-college"></div>
+      </div>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--moe)"></span>教育部補助</span>
+        <span><span class="dot" style="background:var(--school)"></span>學校保底支付</span>
+        <span><span class="dot" style="background:var(--college)"></span>學院自籌加碼</span>
+      </div>
+
+      <table class="breakdown">
+        <thead>
+          <tr><th>項目</th><th style="text-align:right;">金額（萬元 / 年）</th><th style="text-align:right;">占比</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="label">教育部補助：門檻 ~ 120 萬段（80%）</td><td class="num" id="r-moe-80">—</td><td class="num" id="r-moe-80-pct">—</td></tr>
+          <tr><td class="label">教育部補助：超過 120 萬段（50%）</td><td class="num" id="r-moe-50">—</td><td class="num" id="r-moe-50-pct">—</td></tr>
+          <tr class="subtotal"><td class="label">教育部補助 小計</td><td class="num" id="r-moe">—</td><td class="num" id="r-moe-pct">—</td></tr>
+          <tr><td class="label">學校保底支付（固定不變）</td><td class="num" id="r-school">—</td><td class="num" id="r-school-pct">—</td></tr>
+          <tr><td class="label">學院自籌加碼</td><td class="num" id="r-college">—</td><td class="num" id="r-college-pct">—</td></tr>
+          <tr class="total-row"><td class="label">合計（＝期望年彈薪總額）</td><td class="num" id="r-sum">—</td><td class="num">100%</td></tr>
+        </tbody>
+      </table>
+
+      <div id="r-alert"></div>
+
+      <details>
+        <summary>查看計算公式與依據</summary>
+        <div class="info-block" style="margin-top:8px;">
+          <div><strong>教育部補助公式：</strong></div>
+          <ul>
+            <li>若 A ≤ 門檻 : 補助 = 0</li>
+            <li>若 門檻 &lt; A ≤ 120 : 補助 = (A − 門檻) × 80%</li>
+            <li>若 A &gt; 120 : 補助 = (120 − 門檻) × 80% + (A − 120) × 50%</li>
+          </ul>
+          <div><strong>學院自籌：</strong>＝ 年度彈薪總額 − 教育部補助 − 學校保底支付</div>
+          <div style="margin-top:6px;"><strong>學校保底支付：</strong>依各層級規劃版本固定，加碼版（院級加碼）固定為 18 萬；額定版則為「基礎額度 − 教育部對基礎額度之補助」。</div>
+        </div>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2>各層級辦法一覽</h2>
+      <table class="ref">
+        <thead>
+          <tr>
+            <th>層級</th><th>月基數範圍</th><th>基礎（年）</th><th>加碼上限 2×</th><th>全校天花板</th>
+          </tr>
+        </thead>
+        <tbody id="ref-body"></tbody>
+      </table>
+      <div class="hint" style="margin-top:8px;">點擊任一列可快速套用至試算。</div>
+    </div>
+  </div>
+</div>
+
+<footer class="foot">
+  資料依據：<em>115 彈薪加碼試算表（提供各院參考）</em>。本工具僅供規劃試算，實際核定金額仍以個案審議結果為準。
+</footer>
+</div>
+
+<script>
+// ========== 各層級規劃資料 ==========
+const TIERS = [
+  {
+    id: 'jcl', name: '傑出講座', range: [12, 40],
+    base: 180, cap2x: 360, ceiling: 480,
+    schemes: [{ key: 's1', label: '升等逾5年教授（門檻36萬）', threshold: 36, school: 82.8 }],
+  },
+  {
+    id: 'zsl', name: '中山講座', range: [8, 25],
+    base: 120, cap2x: 240, ceiling: 300,
+    schemes: [{ key: 's1', label: '升等逾5年教授（門檻36萬）', threshold: 36, school: 52.8 }],
+  },
+  {
+    id: 'xwl', name: '西灣講座', range: [6, 20],
+    base: 96, cap2x: 192, ceiling: 240,
+    schemes: [{ key: 's1', label: '升等逾5年教授（門檻36萬）', threshold: 36, school: 48 }],
+  },
+  {
+    id: 'csj', name: '學術研究校級特聘教授', range: [5, 15],
+    base: 72, cap2x: 144, ceiling: 180,
+    schemes: [
+      { key: 'a', label: '升等逾5年教授（門檻36萬）', threshold: 36, school: 43.2 },
+      { key: 'b', label: '升等5年內教授／副教授以下（門檻18萬）', threshold: 18, school: 28.8 },
+    ],
+  },
+  {
+    id: 'jxtp', name: '教學特聘教授', range: [5, 15],
+    base: 72, cap2x: 144, ceiling: 180,
+    schemes: [
+      { key: 'a', label: '升等逾5年教授（門檻36萬）', threshold: 36, school: 43.2 },
+      { key: 'b', label: '升等5年內教授／副教授以下（門檻18萬）', threshold: 18, school: 28.8 },
+    ],
+  },
+  {
+    id: 'cxtp', name: '產學特聘教授', range: [5, 15],
+    base: 72, cap2x: 144, ceiling: 180,
+    schemes: [
+      { key: 'a', label: '升等逾5年教授（門檻36萬）', threshold: 36, school: 43.2 },
+      { key: 'b', label: '升等5年內教授／副教授以下（門檻18萬）', threshold: 18, school: 28.8 },
+    ],
+  },
+  {
+    id: 'ysjQ', name: '學術研究院級特聘教授【額定】', range: [3, 15],
+    base: 36, cap2x: 72, ceiling: 180,
+    schemes: [
+      { key: 'a', label: '升等逾5年教授（門檻36萬）', threshold: 36, school: 36 },
+      { key: 'b', label: '升等5年內教授／副教授以下（門檻18萬）', threshold: 18, school: 21.6 },
+    ],
+  },
+  {
+    id: 'ysjA', name: '學術研究院級特聘教授【學院增額推薦】', range: [3, 15],
+    base: 36, cap2x: 72, ceiling: 180,
+    schemes: [
+      { key: 'a', label: '升等逾5年教授（門檻36萬）', threshold: 36, school: 18 },
+      { key: 'b', label: '升等5年內教授／副教授以下（門檻18萬）', threshold: 18, school: 18 },
+    ],
+  },
+  {
+    id: 'cyj', name: '校級特聘年輕學者', range: [4, 10],
+    base: 48, cap2x: 96, ceiling: 120,
+    schemes: [
+      { key: 'a', label: '升等逾5年教授（門檻36萬）', threshold: 36, school: 38.4 },
+      { key: 'b', label: '升等5年內教授／副教授以下（門檻18萬）', threshold: 18, school: 24 },
+    ],
+  },
+  {
+    id: 'yyjQ', name: '院級特聘年輕學者【額定】', range: [2, 5],
+    base: 24, cap2x: 48, ceiling: 60,
+    schemes: [{ key: 'b', label: '副教授／助理教授（門檻18萬）', threshold: 18, school: 19.2 }],
+  },
+  {
+    id: 'yyjA', name: '院級特聘年輕學者【學院增額推薦】', range: [2, 5],
+    base: 24, cap2x: 48, ceiling: 60,
+    schemes: [{ key: 'b', label: '副教授／助理教授（門檻18萬）', threshold: 18, school: 18 }],
+  },
+  {
+    id: 'jys', name: '績優教師', range: [1, 5],
+    base: 18, cap2x: 36, ceiling: 60,
+    schemes: [
+      { key: 'a', label: '升等逾5年教授（門檻36萬）', threshold: 36, school: 18 },
+      { key: 'b', label: '升等5年內教授／副教授以下（門檻18萬）', threshold: 18, school: 18 },
+    ],
+  },
+];
+
+// ========== Helpers ==========
+const $ = (id) => document.getElementById(id);
+const fmt = (v) => {
+  if (v === null || isNaN(v)) return '—';
+  const r = Math.round(v * 10) / 10;
+  return r.toLocaleString('zh-Hant', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+};
+const pct = (v, total) => {
+  if (!total || isNaN(v)) return '—';
+  const p = (v / total) * 100;
+  return p.toFixed(1) + '%';
+};
+
+function calcMOE(amount, threshold) {
+  if (amount <= threshold) return { total: 0, seg80: 0, seg50: 0 };
+  if (amount <= 120) {
+    const seg80 = (amount - threshold) * 0.8;
+    return { total: seg80, seg80, seg50: 0 };
+  }
+  const seg80 = (120 - threshold) * 0.8;
+  const seg50 = (amount - 120) * 0.5;
+  return { total: seg80 + seg50, seg80, seg50 };
+}
+
+function getTier() { return TIERS.find(t => t.id === $('tier').value); }
+function getScheme(tier) { return tier.schemes.find(s => s.key === $('scheme').value) || tier.schemes[0]; }
+
+// ========== Init UI ==========
+function initTierSelect() {
+  const sel = $('tier');
+  sel.innerHTML = TIERS.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+}
+
+function rebuildSchemeSelect() {
+  const tier = getTier();
+  const sel = $('scheme');
+  sel.innerHTML = tier.schemes.map(s => `<option value="${s.key}">${s.label}</option>`).join('');
+  $('scheme-field').style.display = tier.schemes.length > 1 ? '' : 'none';
+}
+
+function updateTierHint() {
+  const tier = getTier();
+  $('tier-hint').innerHTML =
+    `<span class="pill primary">月基數 ${tier.range[0]}~${tier.range[1]}</span>` +
+    `<span class="pill">基礎 ${fmt(tier.base)} 萬/年</span>` +
+    `<span class="pill">原則上限 ${fmt(tier.cap2x)} 萬/年</span>` +
+    `<span class="pill">全校天花板 ${fmt(tier.ceiling)} 萬/年</span>`;
+}
+
+function updateAmountHint() {
+  const tier = getTier();
+  $('amount-hint').innerHTML =
+    `可輸入區間：<strong>${fmt(tier.base)} ~ ${fmt(tier.cap2x)} 萬</strong>（基礎 ~ 加碼上限 2×）。` +
+    `<span style="color:var(--gray-500);">全校天花板 ${fmt(tier.ceiling)} 萬須另案專案審議。</span>`;
+  $('amount').min = tier.base;
+  $('amount').max = tier.cap2x;
+  $('amount').step = 1;
+}
+
+function clampAmount() {
+  const tier = getTier();
+  let v = parseFloat($('amount').value);
+  if (isNaN(v)) v = tier.base;
+  if (v < tier.base) v = tier.base;
+  if (v > tier.cap2x) v = tier.cap2x;
+  $('amount').value = v;
+  return v;
+}
+
+function buildQuickPills() {
+  const tier = getTier();
+  const choices = [tier.base, tier.cap2x];
+  const labels = ['基礎額度', '加碼上限 2×'];
+  $('quick-pills').innerHTML = '<label style="margin-bottom:6px;">快速套用</label>' + choices.map((v, i) =>
+    `<button type="button" class="qp" data-v="${v}" style="margin:2px 4px 0 0;padding:6px 12px;border:1px solid var(--gray-200);background:#fff;border-radius:20px;cursor:pointer;font-size:12px;color:var(--gray-700);">${labels[i]}：${fmt(v)} 萬</button>`
+  ).join('');
+  document.querySelectorAll('.qp').forEach(b => b.onclick = () => {
+    $('amount').value = b.dataset.v;
+    update();
+  });
+}
+
+function buildRefTable() {
+  $('ref-body').innerHTML = TIERS.map(t =>
+    `<tr data-id="${t.id}" style="cursor:pointer;">
+      <td class="first">${t.name}</td>
+      <td>${t.range[0]} ~ ${t.range[1]}</td>
+      <td>${fmt(t.base)} 萬</td>
+      <td>${fmt(t.cap2x)} 萬</td>
+      <td>${fmt(t.ceiling)} 萬</td>
+    </tr>`
+  ).join('');
+  document.querySelectorAll('#ref-body tr').forEach(tr => {
+    tr.onmouseenter = () => tr.style.background = 'var(--gray-50)';
+    tr.onmouseleave = () => tr.style.background = '';
+    tr.onclick = () => {
+      $('tier').value = tr.dataset.id;
+      onTierChange();
+    };
+  });
+}
+
+// ========== Render result ==========
+function update() {
+  const tier = getTier();
+  const scheme = getScheme(tier);
+  const amount = parseFloat($('amount').value) || 0;
+
+  const moe = calcMOE(amount, scheme.threshold);
+  let school = scheme.school;
+  let college = amount - moe.total - school;
+
+  // If amount < school baseline, the "college" share should not go negative — collapse school down
+  if (amount < school) {
+    school = amount;
+    college = 0;
+  }
+  if (college < 0) college = 0;
+
+  $('r-total').textContent = fmt(amount);
+  $('r-moe-80').textContent = fmt(moe.seg80);
+  $('r-moe-50').textContent = fmt(moe.seg50);
+  $('r-moe').textContent = fmt(moe.total);
+  $('r-school').textContent = fmt(school);
+  $('r-college').textContent = fmt(college);
+  $('r-sum').textContent = fmt(moe.total + school + college);
+
+  $('r-moe-80-pct').textContent = pct(moe.seg80, amount);
+  $('r-moe-50-pct').textContent = pct(moe.seg50, amount);
+  $('r-moe-pct').textContent = pct(moe.total, amount);
+  $('r-school-pct').textContent = pct(school, amount);
+  $('r-college-pct').textContent = pct(college, amount);
+
+  // Bar widths
+  const total = Math.max(amount, 1);
+  const wMoe = (moe.total / total) * 100;
+  const wSchool = (school / total) * 100;
+  const wCollege = (college / total) * 100;
+  $('seg-moe').style.width = wMoe + '%';
+  $('seg-school').style.width = wSchool + '%';
+  $('seg-college').style.width = wCollege + '%';
+  $('seg-moe').textContent = wMoe > 8 ? `教育部 ${fmt(moe.total)}` : '';
+  $('seg-school').textContent = wSchool > 8 ? `學校 ${fmt(school)}` : '';
+  $('seg-college').textContent = wCollege > 8 ? `學院 ${fmt(college)}` : '';
+
+  // Status pill + alerts (input is clamped to [base, cap2x] on change)
+  let statusHtml = '';
+  let alertHtml = '';
+  if (amount === tier.base) {
+    statusHtml = `<span class="pill" style="background:#EDF6E9;color:#2D5A1F;">基礎額度</span>`;
+  } else if (amount === tier.cap2x) {
+    statusHtml = `<span class="pill" style="background:#FFF6E5;color:#8C5A00;">加碼上限 2×</span>`;
+  } else if (amount > tier.cap2x) {
+    // Should not occur (input is clamped), but show warning if it does
+    statusHtml = `<span class="pill" style="background:#FCE8E8;color:#7A1F1F;">超出可輸入區間</span>`;
+    alertHtml = `<div class="alert err">⚠ 期望總額不得超過加碼上限 ${fmt(tier.cap2x)} 萬。</div>`;
+  } else if (amount < tier.base) {
+    statusHtml = `<span class="pill" style="background:#FCE8E8;color:#7A1F1F;">低於基礎額度</span>`;
+    alertHtml = `<div class="alert err">⚠ 期望總額不得低於基礎額度 ${fmt(tier.base)} 萬。</div>`;
+  } else {
+    statusHtml = `<span class="pill" style="background:#E2ECF7;color:var(--primary);">在可輸入區間內</span>`;
+  }
+  $('r-status').innerHTML = statusHtml;
+  $('r-alert').innerHTML = alertHtml;
+}
+
+// ========== Wire up ==========
+function onTierChange() {
+  rebuildSchemeSelect();
+  updateTierHint();
+  updateAmountHint();
+  buildQuickPills();
+  // Reset amount to base when switching tier
+  const tier = getTier();
+  $('amount').value = tier.base;
+  update();
+}
+
+initTierSelect();
+$('tier').addEventListener('change', onTierChange);
+$('scheme').addEventListener('change', update);
+$('amount').addEventListener('input', update);
+// Hard-clamp the value when the user finishes editing (blur / Enter / arrow buttons)
+$('amount').addEventListener('change', () => { clampAmount(); update(); });
+$('amount').addEventListener('blur', () => { clampAmount(); update(); });
+$('amount').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { clampAmount(); update(); $('amount').blur(); }
+});
+buildRefTable();
+onTierChange();
+</script>
+</body>
+</html>
